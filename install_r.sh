@@ -9,6 +9,7 @@ sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_
 sudo apt update && sudo apt install -y r-base libnode-dev libxml2-dev libcurl4-openssl-dev libopenblas-dev
 
 # install r packages
+R --slave -e 'dir.create(path = Sys.getenv("R_LIBS_USER"), showWarnings = FALSE, recursive = TRUE)'
 R --slave -e 'install.packages(c("tidyverse", "doParallel", "nnet", "kernlab", "ranger", "xgboost", "dbarts", "devtools"))'
 
 # make sure we get latest versions of these
