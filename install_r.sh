@@ -7,4 +7,4 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key 'E298A3A825C0D65DFD
 #echo "deb http://cloud.r-project.org/bin/linux/debian bullseye-cran40/" | sudo tee -a /etc/apt/sources.list
  
 # install r and some dependencies
-sudo apt update && sudo apt install -y r-base libv8-dev libxml2-dev lubcurl4-openssl-dev libopenblas-dev
+sudo apt update && sudo apt install -y r-base libnode-dev libxml2-dev libcurl4-openssl-dev libopenblas-dev
