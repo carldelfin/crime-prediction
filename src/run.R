@@ -1,9 +1,9 @@
 library(here)
 library(tidymodels)
-library(tidyverse)
+#library(tidyverse)
 #library(parallel)
 library(doParallel)
-library(finetune)
+#library(finetune)
 #library(tune)
 #library(dials)
 
@@ -40,7 +40,11 @@ data_folds <- vfold_cv(data_train, strata = outcome, v = 5, repeats = 5)
 
 sel_outcome <- "general_crime"
 cores <- 6 
-tune_length <- 20L
+#tune_length <- 20L
+
+bayes_initial <- 5L
+bayes_improve <- 5
+bayes_iter <- 20
 
 nnet_epochs <- 100
 brulee_epochs <- 100

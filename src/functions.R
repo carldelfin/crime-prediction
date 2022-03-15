@@ -170,6 +170,17 @@ train_model <- function(model) {
                              scale_factor = tune()) %>% 
         set_engine("kernlab") %>% 
         set_mode("classification")
+    
+    # ----------------------------------------------------------------------------------------------
+    # mars 
+    # ----------------------------------------------------------------------------------------------
+
+    } else if (model == "mars") {
+        mod_spec <- mars(num_terms = tune("mars terms"),
+                         prod_degree = tune(),
+                         prune_method = "none") %>% 
+        set_engine("earth") %>% 
+        set_mode("classification")
     }
     
     # ==============================================================================================
@@ -187,37 +198,42 @@ train_model <- function(model) {
     #if (model %in% c("keras_dropout", "keras_penalty")) {
         #cl <- makeCluster(cores, type = "FORK")
     #} else {
-    cl <- makeCluster(cores, type = "FORK")
+    cl <- makePSOCKcluster(cores)
     registerDoParallel(cl)
     #}
 
 
     # start model
-    # mod_tuned <- mod_wf %>%
-    #     tune_bayes(resamples = data_folds,
-    #                metrics = log_loss_res,
-    #                initial = bayes_initial,
-    #                param_info = mod_param,
-    #                iter = bayes_iter,
-    #                control = bayes_ctrl)
-    set.seed(2022)
-    search_grid <- grid_latin_hypercube(mod_param,
-                                        size = tune_length,
-                                        original = TRUE)
-
     mod_tuned <- mod_wf %>%
-        #tune_race_anova(resamples = data_folds,
-        tune_race_win_loss(resamples = data_folds,
-                        metrics = log_loss_res,
-                        param_info = mod_param,
-                        grid = search_grid,
-                        control = control_race(verbose = FALSE,
-                                               verbose_elim = TRUE,
-                                               burn_in = 5,
-                                               num_ties = 10,
-                                               event_level = "first",
-                                               parallel_over = "everything"))
-
+        tune_bayes(resamples = data_folds,
+                   metrics = log_loss_res,
+                   initial = bayes_initial,
+                   param_info = mod_param,
+                   iter = bayes_iter,
+                   control = control_bayes(verbose = TRUE,
+                                           no_improve = bayes_improve,
+                                           uncertain = Inf,
+                                           seed = 2022,
+                                           event_level = "first",
+                                           parallel_over = "everything"))
+#     set.seed(2022)
+#     search_grid <- grid_latin_hypercube(mod_param,
+#                                         size = tune_length,
+#                                         original = TRUE)
+# 
+#     mod_tuned <- mod_wf %>%
+#         #tune_race_anova(resamples = data_folds,
+#         tune_race_win_loss(resamples = data_folds,
+#                         metrics = log_loss_res,
+#                         param_info = mod_param,
+#                         grid = search_grid,
+#                         control = control_race(verbose = FALSE,
+#                                                verbose_elim = TRUE,
+#                                                burn_in = 5,
+#                                                num_ties = 10,
+#                                                event_level = "first",
+#                                                parallel_over = "everything"))
+# 
     # stop parallel processing?
     #if (exists("cl")) {
     stopCluster(cl)
