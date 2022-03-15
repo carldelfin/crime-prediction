@@ -1,11 +1,13 @@
 library(here)
 library(tidymodels)
 library(tidyverse)
-library(parallel)
+#library(parallel)
 library(doParallel)
 library(finetune)
-library(tune)
-library(dials)
+#library(tune)
+#library(dials)
+
+options(tidymodels.dark = TRUE)
 
 source(here("src/functions.R"))
 
@@ -31,12 +33,13 @@ data_train <- data_train %>%
            male = ifelse(Sex == "male", 1, 0),
            fare = ifelse(Fare > 20, 1, 0),
            embarked = ifelse(Embarked == "S", 1, 0)) %>%
-    dplyr::select(outcome, class, male, fare, embarked)
+    dplyr::select(outcome, class, male, fare, embarked) %>%
+    slice(1:500)  # to speed things up
 
-data_folds <- vfold_cv(data_train, strata = outcome, v = 10, repeats = 10)
+data_folds <- vfold_cv(data_train, strata = outcome, v = 5, repeats = 5)
 
 sel_outcome <- "general_crime"
-cores <- 12 
+cores <- 6 
 tune_length <- 20L
 
 nnet_epochs <- 100
@@ -55,5 +58,5 @@ model_vec <- c("nnet",
                "svm_radial",
                "svm_poly")
 
-train_model("nnet")
-#lapply(model_vec, train_model)
+#train_model("brulee_penalty")
+lapply(model_vec, train_model)

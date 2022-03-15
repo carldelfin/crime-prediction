@@ -187,8 +187,8 @@ train_model <- function(model) {
     #if (model %in% c("keras_dropout", "keras_penalty")) {
         #cl <- makeCluster(cores, type = "FORK")
     #} else {
-     #   cl <- makeCluster(cores)
-      #  registerDoParallel(cl)
+    cl <- makeCluster(cores, type = "FORK")
+    registerDoParallel(cl)
     #}
 
 
@@ -206,12 +206,13 @@ train_model <- function(model) {
                                         original = TRUE)
 
     mod_tuned <- mod_wf %>%
-        tune_race_anova(resamples = data_folds,
+        #tune_race_anova(resamples = data_folds,
+        tune_race_win_loss(resamples = data_folds,
                         metrics = log_loss_res,
                         param_info = mod_param,
                         grid = search_grid,
                         control = control_race(verbose = FALSE,
-                                               verbose_elim = FALSE,
+                                               verbose_elim = TRUE,
                                                burn_in = 5,
                                                num_ties = 10,
                                                event_level = "first",
@@ -219,14 +220,15 @@ train_model <- function(model) {
 
     # stop parallel processing?
     #if (exists("cl")) {
-    #stopCluster(cl)
-    #registerDoSEQ()
+    stopCluster(cl)
+    registerDoSEQ()
     #}
 
     best_log_loss <- show_best(mod_tuned) %>% 
         select(mean, std_err) %>% 
         as.data.frame() %>% 
-        mutate_all(round, 3)
+        mutate_all(round, 3) %>%
+        slice(1)
     
     best_param <- select_best(mod_tuned, metric = "mn_log_loss")
     final_mod_wf <- mod_wf %>% finalize_workflow(best_param)
@@ -246,6 +248,8 @@ train_model <- function(model) {
         "minute(s)\n",
         "estimated log loss:",
         best_log_loss$mean,
+        "with std. err.",
+        best_log_loss$std_err,
         "\n")
     
     # save
