@@ -2,7 +2,7 @@
 
 # import proper key and add R repository
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key '95C0FAF38DB3CCAD0C080A7BDC78B2DDEABC47B7'
-echo "deb http://cloud.r-project.org/bin/linux/debian bullseye-cran40/" | tee -a /etc/apt/sources.list
+sud add-apt-repository "deb http://cloud.r-project.org/bin/linux/debian bullseye-cran40/"
 
 # install R and some necessary dependencies
 sudo apt update && sudo apt install -y r-base libnode-dev libxml2-dev libcurl4-openssl-dev libopenblas-dev
