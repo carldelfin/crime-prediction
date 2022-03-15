@@ -11,3 +11,7 @@ Debian 11 [netinstall](https://www.debian.org/CD/netinst/).
 * `/sbin/adduser username sudo`
 * Log out and back in - done!
 
+### Install git and clone this repo
+
+`sudo apt install git`
+`git clone https://github.com/carldelfin/crime-prediction.git`
