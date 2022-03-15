@@ -2,6 +2,8 @@
 
 ## VM setup
 
+Using, for instance, [QEMU](https://www.qemu.org/) and [KVM](https://www.linux-kvm.org/page/Main_Page).
+
 Debian 11 [netinstall](https://www.debian.org/CD/netinst/).
 
 ### Enable sudo
