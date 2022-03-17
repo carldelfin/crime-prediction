@@ -195,9 +195,9 @@ train_model <- function(model) {
 
     # parallel processing?
     if (model %in% c("keras_dropout", "keras_penalty")) {
-        print("no parallel processing...")
+        cat("no parallel processing...")
     } else {
-        print("registering parallel cluster...")
+        cat("registering parallel cluster...")
         cl <- makeCluster(cores, type = "FORK")
         registerDoParallel(cl)
     }
@@ -239,6 +239,7 @@ train_model <- function(model) {
 
     # stop parallel processing?
     if (exists("cl")) {
+        cat("shutting down parallel cluster...")
         stopCluster(cl)
         registerDoSEQ()
         rm(cl)

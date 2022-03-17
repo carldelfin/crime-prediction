@@ -11,32 +11,34 @@ options(tidymodels.dark = TRUE)
 
 source(here("src/functions.R"))
 
-# data <- readRDS(here("data/data.rds")) %>%
-#     slice(1:500) %>% # to speed things up
-#         select(sud, prev_narc, prev_viol, cvi, prev_psych, 
-#                youth_crime, edu, meds, born_outside_nordic,
-#                general_crime) %>%
-#         rename(outcome = general_crime)
-# 
-# set.seed(2022)
-# data_split <- initial_split(data, strata = outcome)
-# data_train <- training(data_split)
-# data_test  <- testing(data_split)
+#data <- readRDS(here("data/data.rds")) %>%
+data <- readRDS("~/Documents/work/projects/DAABS_ml_recid/data/data.rds") %>%
+    slice(1:1000) %>% # to speed things up
+        select(sud, prev_narc, prev_viol, cvi, prev_psych, 
+               youth_crime, edu, meds, born_outside_nordic,
+               general_crime) %>%
+        rename(outcome = general_crime)
+
+set.seed(2022)
+data_split <- initial_split(data, strata = outcome)
+data_train <- training(data_split)
+data_test  <- testing(data_split)
 
 # for testing purposes
-set.seed(2020)
-nn <- 1000
-data_train <- data.frame(outcome = factor(rep(c("yes", "no"), each = nn, times = 2)),
-                         x1 = as.numeric(c(rbinom(nn, 1, 0.8), rbinom(nn, 1, 0.2))),
-                         x2 = as.numeric(c(rbinom(nn, 1, 0.7), rbinom(nn, 1, 0.3))),
-                         x3 = as.numeric(c(rbinom(nn, 1, 0.6), rbinom(nn, 1, 0.4))),
-                         x4 = as.numeric(c(rbinom(nn, 1, 0.7), rbinom(nn, 1, 0.3))),
-                         x5 = as.numeric(c(rbinom(nn, 1, 0.8), rbinom(nn, 1, 0.2))),
-                         x6 = as.numeric(c(rbinom(nn, 1, 0.9), rbinom(nn, 1, 0.1))),
-                         x7 = as.numeric(c(rbinom(nn, 1, 0.9), rbinom(nn, 1, 0.1))),
-                         x8 = as.numeric(c(rbinom(nn, 1, 0.9), rbinom(nn, 1, 0.1))))
+# set.seed(2020)
+# nn <- 1000
+# data_train <- data.frame(outcome = factor(rep(c("yes", "no"), each = nn, times = 2)),
+#                          x1 = as.numeric(c(rbinom(nn, 1, 0.8), rbinom(nn, 1, 0.2))),
+#                          x2 = as.numeric(c(rbinom(nn, 1, 0.7), rbinom(nn, 1, 0.3))),
+#                          x3 = as.numeric(c(rbinom(nn, 1, 0.6), rbinom(nn, 1, 0.4))),
+#                          x4 = as.numeric(c(rbinom(nn, 1, 0.7), rbinom(nn, 1, 0.3))),
+#                          x5 = as.numeric(c(rbinom(nn, 1, 0.8), rbinom(nn, 1, 0.2))),
+#                          x6 = as.numeric(c(rbinom(nn, 1, 0.9), rbinom(nn, 1, 0.1))),
+#                          x7 = as.numeric(c(rbinom(nn, 1, 0.9), rbinom(nn, 1, 0.1))),
+#                          x8 = as.numeric(c(rbinom(nn, 1, 0.9), rbinom(nn, 1, 0.1))))
+# 
+# data_train$outcome <- relevel(data_train$outcome, ref = "yes")
 
-data_train$outcome <- relevel(data_train$outcome, ref = "yes")
 data_folds <- vfold_cv(data_train, strata = outcome, v = 10, repeats = 10)
 
 sel_outcome <- "general_crime"
