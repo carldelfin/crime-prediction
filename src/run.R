@@ -60,5 +60,3 @@ model_vec <- c("nnet",
 
 train_model("nnet")
 #lapply(model_vec, train_model)
-
-print(model_vec$.notes)
