@@ -3,7 +3,7 @@ library(tidymodels)
 #library(tidyverse)
 #library(parallel)
 library(doParallel)
-#library(finetune)
+library(finetune)
 #library(tune)
 #library(dials)
 
@@ -24,23 +24,19 @@ source(here("src/functions.R"))
 # data_test  <- testing(data_split)
 
 # for testing purposes
-library(titanic)
-data_train <- titanic_train %>%
-    mutate(outcome = factor(ifelse(Survived == 1, "yes", "no")))
-data_train$outcome <- relevel(data_train$outcome, ref = "yes")
-data_train <- data_train %>%
-    mutate(class = ifelse(Pclass == 1, 1, 0),
-           male = ifelse(Sex == "male", 1, 0),
-           fare = ifelse(Fare > 20, 1, 0),
-           embarked = ifelse(Embarked == "S", 1, 0)) %>%
-    dplyr::select(outcome, class, male, fare, embarked) %>%
-    slice(1:500)  # to speed things up
+data_train <- data.frame(outcome = factor(rep(c("yes", "no"), each = 250, times = 2)),
+                         x1 = as.numeric(c(rbinom(250, 1, 0.8), rbinom(250, 1, 0.2))),
+                         x2 = as.numeric(c(rbinom(250, 1, 0.7), rbinom(250, 1, 0.3))),
+                         x3 = as.numeric(c(rbinom(250, 1, 0.6), rbinom(250, 1, 0.4))),
+                         x4 = as.numeric(c(rbinom(250, 1, 0.7), rbinom(250, 1, 0.3))),
+                         x5 = as.numeric(c(rbinom(250, 1, 0.8), rbinom(250, 1, 0.2))))
 
+data_train$outcome <- relevel(data_train$outcome, ref = "yes")
 data_folds <- vfold_cv(data_train, strata = outcome, v = 5, repeats = 5)
 
 sel_outcome <- "general_crime"
 cores <- 6 
-#tune_length <- 20L
+tune_length <- 20L
 
 bayes_initial <- 5L
 bayes_improve <- 5
@@ -62,5 +58,7 @@ model_vec <- c("nnet",
                "svm_radial",
                "svm_poly")
 
-#train_model("brulee_penalty")
-lapply(model_vec, train_model)
+train_model("nnet")
+#lapply(model_vec, train_model)
+
+print(model_vec$.notes)

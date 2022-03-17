@@ -6,7 +6,6 @@ train_model <- function(model) {
     mod_rec <- recipe(outcome ~ ., data = data_train)
     log_loss_res <- metric_set(mn_log_loss)
 
-    mod_t1 <- Sys.time()
 
     # ----------------------------------------------------------------------------------------------
     # mlp with 'nnet' engine
@@ -195,16 +194,17 @@ train_model <- function(model) {
         add_recipe(mod_rec)
 
     # parallel processing?
-    #if (model %in% c("keras_dropout", "keras_penalty")) {
-        #cl <- makeCluster(cores, type = "FORK")
-    #} else {
-    cl <- makePSOCKcluster(cores)
-    registerDoParallel(cl)
-    #}
-
+    if (model %in% c("keras_dropout", "keras_penalty")) {
+        print("no parallel processing...")
+    } else {
+        print("registering parallel cluster...")
+        cl <- makeCluster(cores, type = "FORK")
+        registerDoParallel(cl)
+    }
 
     # start model
-    mod_tuned <- mod_wf %>%
+    time_b1 <- Sys.time()
+    mod_bayes <- mod_wf %>% 
         tune_bayes(resamples = data_folds,
                    metrics = log_loss_res,
                    initial = bayes_initial,
@@ -216,60 +216,78 @@ train_model <- function(model) {
                                            seed = 2022,
                                            event_level = "first",
                                            parallel_over = "everything"))
-#     set.seed(2022)
-#     search_grid <- grid_latin_hypercube(mod_param,
-#                                         size = tune_length,
-#                                         original = TRUE)
-# 
-#     mod_tuned <- mod_wf %>%
-#         #tune_race_anova(resamples = data_folds,
-#         tune_race_win_loss(resamples = data_folds,
-#                         metrics = log_loss_res,
-#                         param_info = mod_param,
-#                         grid = search_grid,
-#                         control = control_race(verbose = TRUE,
-#                                                verbose_elim = TRUE,
-#                                                burn_in = 5,
-#                                                num_ties = 10,
-#                                                event_level = "first",
-#                                                parallel_over = "everything"))
-# 
-    # stop parallel processing?
-    #if (exists("cl")) {
-    stopCluster(cl)
-    registerDoSEQ()
-    #}
+    time_b2 <- Sys.time()
+    
+    time_a1 <- Sys.time()
+    set.seed(2022)
+    search_grid <- grid_latin_hypercube(mod_param,
+                                        size = tune_length,
+                                        original = TRUE)
 
-    best_log_loss <- show_best(mod_tuned) %>% 
+    mod_anova <- mod_wf %>%
+        tune_race_anova(resamples = data_folds,
+                        metrics = log_loss_res,
+                        param_info = mod_param,
+                        grid = search_grid,
+                        control = control_race(verbose = TRUE,
+                                               verbose_elim = TRUE,
+                                               burn_in = 5,
+                                               num_ties = 10,
+                                               event_level = "first",
+                                               parallel_over = "everything"))
+    time_a2 <- Sys.time()
+
+    # stop parallel processing?
+    if (exists("cl")) {
+        stopCluster(cl)
+        registerDoSEQ()
+        rm(cl)
+    }
+
+    best_log_loss_bayes <- show_best(mod_bayes) %>% 
         select(mean, std_err) %>% 
         as.data.frame() %>% 
         mutate_all(round, 3) %>%
         slice(1)
     
-    best_param <- select_best(mod_tuned, metric = "mn_log_loss")
-    final_mod_wf <- mod_wf %>% finalize_workflow(best_param)
-    final_mod_fit <- final_mod_wf %>% fit(data_train)
-   
-    # stop timer
-    mod_t2 <- Sys.time()
-    mod_exec_time <- lubridate::seconds_to_period(round(difftime(mod_t2, mod_t1, units = "secs")[[1]], 2))
-    cat("",
-        model,
-        "training complete on:", 
-        format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
-        "after",
-        mod_exec_time@hour,
-        "hour(s) and", 
-        mod_exec_time@minute,
-        "minute(s)\n",
-        "estimated log loss:",
-        best_log_loss$mean,
-        "with std. err.",
-        best_log_loss$std_err,
-        "\n")
+    best_log_loss_anova <- show_best(mod_anova) %>% 
+        select(mean, std_err) %>% 
+        as.data.frame() %>% 
+        mutate_all(round, 3) %>%
+        slice(1)
     
-    # save
-    saveRDS(best_param, here(paste0("output/param_", tune_length, "_", sel_outcome, "_", model, ".rds")))
-    saveRDS(final_mod_fit, here(paste0("output/mod_", tune_length, "_", sel_outcome, "_", model, ".rds")))
-    saveRDS(mod_exec_time, here(paste0("output/time_", tune_length, "_", sel_outcome, "_", model, ".rds")))
+    time_bayes <- lubridate::seconds_to_period(round(difftime(time_b2, time_b1, units = "secs")[[1]], 2))
+    time_anova <- lubridate::seconds_to_period(round(difftime(time_a2, time_a1, units = "secs")[[1]], 2))
+
+    cat("best log loss bayes:", best_log_loss_bayes$mean, best_log_loss_bayes$std_err, "\n")
+    cat("bayes timing:", time_bayes@hour, "hour(s) and", time_bayes@minute, "minute(s)\n\n")
+    cat("best log loss anova:", best_log_loss_anova$mean, best_log_loss_anova$std_err, "\n")
+    cat("anova timing:", time_anova@hour, "hour(s) and", time_anova@minute, "minute(s)\n\n")
+    
+   #  best_param <- select_best(mod_tuned, metric = "mn_log_loss")
+   #  final_mod_wf <- mod_wf %>% finalize_workflow(best_param)
+   #  final_mod_fit <- final_mod_wf %>% fit(data_train)
+   # 
+   #  # stop timer
+   #  mod_t2 <- Sys.time()
+   #  mod_exec_time <- lubridate::seconds_to_period(round(difftime(mod_t2, mod_t1, units = "secs")[[1]], 2))
+   #  cat("",
+   #      model,
+   #      "training complete on:", 
+   #      format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
+   #      "after",
+   #      mod_exec_time@hour,
+   #      "hour(s) and", 
+   #      mod_exec_time@minute,
+   #      "minute(s)\n",
+   #      "estimated log loss:",
+   #      best_log_loss$mean,
+   #      "with std. err.",
+   #      best_log_loss$std_err,
+   #      "\n")
+   #  
+   #  # save
+   #  saveRDS(best_param, here(paste0("output/param_", tune_length, "_", sel_outcome, "_", model, ".rds")))
+   #  saveRDS(final_mod_fit, here(paste0("output/mod_", tune_length, "_", sel_outcome, "_", model, ".rds")))
+   #  saveRDS(mod_exec_time, here(paste0("output/time_", tune_length, "_", sel_outcome, "_", model, ".rds")))
 }
