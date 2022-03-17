@@ -35,18 +35,18 @@ data_train$outcome <- relevel(data_train$outcome, ref = "yes")
 data_folds <- vfold_cv(data_train, strata = outcome, v = 5, repeats = 5)
 
 sel_outcome <- "general_crime"
-cores <- 6 
-tune_length <- 20L
+cores <- 16 
+tune_length <- 500L
 
-bayes_initial <- 5L
-bayes_improve <- 5
-bayes_iter <- 20
+bayes_initial <- 10L
+bayes_improve <- 10
+bayes_iter <- 500
 
 nnet_epochs <- 100
 brulee_epochs <- 100
 brulee_patience  <- 10
 keras_epochs <- 100
-keras_patience  <- 10
+keras_patience <- 10
 
 model_vec <- c("nnet",
                "brulee_dropout",
