@@ -24,15 +24,20 @@ source(here("src/functions.R"))
 # data_test  <- testing(data_split)
 
 # for testing purposes
-data_train <- data.frame(outcome = factor(rep(c("yes", "no"), each = 250, times = 2)),
-                         x1 = as.numeric(c(rbinom(250, 1, 0.8), rbinom(250, 1, 0.2))),
-                         x2 = as.numeric(c(rbinom(250, 1, 0.7), rbinom(250, 1, 0.3))),
-                         x3 = as.numeric(c(rbinom(250, 1, 0.6), rbinom(250, 1, 0.4))),
-                         x4 = as.numeric(c(rbinom(250, 1, 0.7), rbinom(250, 1, 0.3))),
-                         x5 = as.numeric(c(rbinom(250, 1, 0.8), rbinom(250, 1, 0.2))))
+set.seed(2020)
+nn <- 1000
+data_train <- data.frame(outcome = factor(rep(c("yes", "no"), each = nn, times = 2)),
+                         x1 = as.numeric(c(rbinom(nn, 1, 0.8), rbinom(nn, 1, 0.2))),
+                         x2 = as.numeric(c(rbinom(nn, 1, 0.7), rbinom(nn, 1, 0.3))),
+                         x3 = as.numeric(c(rbinom(nn, 1, 0.6), rbinom(nn, 1, 0.4))),
+                         x4 = as.numeric(c(rbinom(nn, 1, 0.7), rbinom(nn, 1, 0.3))),
+                         x5 = as.numeric(c(rbinom(nn, 1, 0.8), rbinom(nn, 1, 0.2))),
+                         x6 = as.numeric(c(rbinom(nn, 1, 0.9), rbinom(nn, 1, 0.1))),
+                         x7 = as.numeric(c(rbinom(nn, 1, 0.9), rbinom(nn, 1, 0.1))),
+                         x8 = as.numeric(c(rbinom(nn, 1, 0.9), rbinom(nn, 1, 0.1))))
 
 data_train$outcome <- relevel(data_train$outcome, ref = "yes")
-data_folds <- vfold_cv(data_train, strata = outcome, v = 5, repeats = 5)
+data_folds <- vfold_cv(data_train, strata = outcome, v = 10, repeats = 10)
 
 sel_outcome <- "general_crime"
 cores <- 16 
