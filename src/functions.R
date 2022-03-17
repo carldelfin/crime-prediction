@@ -227,7 +227,7 @@ train_model <- function(model) {
 #                         metrics = log_loss_res,
 #                         param_info = mod_param,
 #                         grid = search_grid,
-#                         control = control_race(verbose = FALSE,
+#                         control = control_race(verbose = TRUE,
 #                                                verbose_elim = TRUE,
 #                                                burn_in = 5,
 #                                                num_ties = 10,

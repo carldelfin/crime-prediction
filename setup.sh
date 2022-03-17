@@ -12,10 +12,10 @@ sudo apt update && sudo apt install -y r-base libnode-dev libxml2-dev libcurl4-o
 R --slave -e 'dir.create(path = Sys.getenv("R_LIBS_USER"), showWarnings = FALSE, recursive = TRUE)'
 R --slave -e 'install.packages(c("tidyverse", "doParallel", "nnet", "kernlab", "ranger", "xgboost", "dbarts", "devtools", "lme4", "earth", "titanic"))'
 #R --slave -e 'devtools::install_github("tidymodels/tidymodels")'
-#R --slave -e 'devtools::install_github("tidymodels/tune")'
+R --slave -e 'devtools::install_github("tidymodels/tune")'
 #R --slave -e 'devtools::install_github("tidymodels/finetune")'
 #R --slave -e 'devtools::install_github("tidymodels/dials")'
-R --slave -e 'install.packages(c("tidymodels"))'
+R --slave -e 'install.packages(c("tidymodels", "finetune"))'
 
 # install TensorFlow and Keras
 sudo apt install -y python3-dev python3-pip python3-venv
